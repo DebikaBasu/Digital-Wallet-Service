@@ -1,6 +1,8 @@
 package com.rs.payments.wallet.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+
+import java.util.Objects;
 import java.util.UUID;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -10,15 +12,14 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "wallets")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "Wallet entity")
@@ -37,4 +38,16 @@ public class Wallet {
     @Column(nullable = false, precision = 19, scale = 2)
     @Schema(description = "Current balance in the wallet", example = "100.50")
     private BigDecimal balance = BigDecimal.ZERO;
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Wallet wallet = (Wallet) o;
+        return Objects.equals(id, wallet.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
+    }
 }
