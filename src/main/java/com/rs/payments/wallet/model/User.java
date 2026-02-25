@@ -1,6 +1,8 @@
 package com.rs.payments.wallet.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
+
+import java.util.Objects;
 import java.util.UUID;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Column;
@@ -12,9 +14,7 @@ import jakarta.persistence.OneToOne;
 import jakarta.persistence.Table;
 import jakarta.persistence.UniqueConstraint;
 import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 @Entity
 @Table(name = "users",
@@ -22,7 +22,8 @@ import lombok.NoArgsConstructor;
                 @UniqueConstraint(columnNames = "username"),
                 @UniqueConstraint(columnNames = "email")
         })
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Schema(description = "User entity")
@@ -47,4 +48,16 @@ public class User {
     @com.fasterxml.jackson.annotation.JsonIgnore
     @Schema(hidden = true)
     private Wallet wallet;
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id) && Objects.equals(username, user.username) && Objects.equals(email, user.email);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(id, username, email);
+    }
 }
