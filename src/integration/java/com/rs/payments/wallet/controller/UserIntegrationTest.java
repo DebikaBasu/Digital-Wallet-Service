@@ -2,22 +2,35 @@ package com.rs.payments.wallet.controller;
 
 import com.rs.payments.wallet.BaseIntegrationTest;
 import com.rs.payments.wallet.dto.CreateUserRequest;
+import com.rs.payments.wallet.exception.DuplicateResourceException;
 import com.rs.payments.wallet.model.User;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
+import org.springframework.http.client.ClientHttpResponse;
+import org.springframework.web.client.DefaultResponseErrorHandler;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import java.io.IOException;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 class UserIntegrationTest extends BaseIntegrationTest {
 
     private final RestTemplate restTemplate = new RestTemplate();
+
+    @BeforeEach
+    void setup() {
+        restTemplate.setErrorHandler(new DefaultResponseErrorHandler() {
+            @Override
+            public boolean hasError(ClientHttpResponse response) throws IOException {
+                return false; // disable exception throwing
+            }
+        });
+    }
 
     @Test
     void shouldCreateUser() {
@@ -26,7 +39,7 @@ class UserIntegrationTest extends BaseIntegrationTest {
         String url = "http://localhost:" + port + "/users";
         ResponseEntity<User> response = restTemplate.postForEntity(url, request, User.class);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getId()).isNotNull();
         assertThat(response.getBody().getUsername()).isEqualTo("testuser");
@@ -36,7 +49,6 @@ class UserIntegrationTest extends BaseIntegrationTest {
     @Test
     void shouldCreateUserAndIgnoreProvidedId() {
         UUID providedId = UUID.randomUUID();
-        // Constructing a JSON string that includes an ID to verify it's ignored or not mapped
         String jsonRequest = String.format("{\"id\":\"%s\", \"username\":\"testuser2\", \"email\":\"test2@example.com\"}", providedId);
 
         HttpHeaders headers = new HttpHeaders();
@@ -46,21 +58,44 @@ class UserIntegrationTest extends BaseIntegrationTest {
         String url = "http://localhost:" + port + "/users";
         ResponseEntity<User> response = restTemplate.postForEntity(url, entity, User.class);
 
-        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CREATED);
         assertThat(response.getBody()).isNotNull();
         assertThat(response.getBody().getId()).isNotEqualTo(providedId);
         assertThat(response.getBody().getUsername()).isEqualTo("testuser2");
     }
 
+
     @Test
-    void shouldReturnBadRequestWhenUserInvalid() {
-        CreateUserRequest request = new CreateUserRequest("", ""); // Blank fields
+    void shouldReturnConflictWhenDuplicateEmail() {
+        CreateUserRequest first = new CreateUserRequest("user1", "duplicate@example.com");
+        CreateUserRequest second = new CreateUserRequest("user2", "duplicate@example.com");
 
         String url = "http://localhost:" + port + "/users";
-        try {
-            restTemplate.postForEntity(url, request, User.class);
-        } catch (org.springframework.web.client.HttpClientErrorException e) {
-            assertThat(e.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
-        }
+        restTemplate.postForEntity(url, first, User.class);
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                new HttpEntity<>(second),
+                String.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+    }
+
+    @Test
+    void shouldReturnBadRequestWhenEmailInvalid() {
+        CreateUserRequest request = new CreateUserRequest("testuser3", "not-an-email");
+
+        String url = "http://localhost:" + port + "/users";
+
+        ResponseEntity<String> response = restTemplate.exchange(
+                url,
+                HttpMethod.POST,
+                new HttpEntity<>(request),
+                String.class
+        );
+
+        assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
     }
 }
