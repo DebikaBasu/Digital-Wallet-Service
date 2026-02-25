@@ -1,5 +1,6 @@
 package com.rs.payments.wallet.controller;
 
+import com.rs.payments.wallet.dto.ErrorResponse;
 import com.rs.payments.wallet.dto.TransferRequest;
 import com.rs.payments.wallet.dto.TransferResponse;
 import com.rs.payments.wallet.service.TransferService;
@@ -28,30 +29,56 @@ public class TransferController {
 
     @Operation(
             summary = "Transfer funds between wallets",
-            description = "Atomically transfers funds from one wallet to another.",
+            description = "Atomically transfers funds from one wallet to another wallet.",
             responses = {
+
                     @ApiResponse(
                             responseCode = "200",
                             description = "Transfer successful",
-                            content = @Content(schema = @Schema(implementation = TransferResponse.class))
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = TransferResponse.class)
+                            )
                     ),
+
                     @ApiResponse(
                             responseCode = "400",
-                            description = "Invalid amount, insufficient funds, or same wallet transfer"
+                            description = "Invalid request, insufficient funds, or validation failure",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponse.class)
+                            )
                     ),
+
                     @ApiResponse(
                             responseCode = "404",
-                            description = "Wallet not found"
+                            description = "Wallet not found",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponse.class)
+                            )
+                    ),
+
+                    @ApiResponse(
+                            responseCode = "409",
+                            description = "Duplicate resource",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponse.class)
+                            )
                     )
             }
     )
     @PostMapping
-    public ResponseEntity<TransferResponse> transfer(@Valid @RequestBody TransferRequest request) {
+    public ResponseEntity<TransferResponse> transfer(
+            @Valid @RequestBody TransferRequest request) {
+
         TransferResponse response = transferService.transfer(
                 request.getFromWalletId(),
                 request.getToWalletId(),
                 request.getAmount()
         );
+
         return ResponseEntity.ok(response);
     }
 }
