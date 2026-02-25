@@ -1,6 +1,8 @@
 package com.rs.payments.wallet.controller;
 
 import com.rs.payments.wallet.dto.CreateUserRequest;
+import com.rs.payments.wallet.dto.ErrorResponse;
+import com.rs.payments.wallet.dto.ValidationErrorResponse;
 import com.rs.payments.wallet.model.User;
 import com.rs.payments.wallet.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,25 +31,54 @@ public class UserController {
 
     @Operation(
             summary = "Create a new user",
-            description = "Creates a new user with the provided username and email.",
+            description = "Creates a new user with a unique email address.",
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    description = "User creation payload",
+                    required = true,
+                    content = @Content(
+                            mediaType = "application/json",
+                            schema = @Schema(implementation = CreateUserRequest.class)
+                    )
+            ),
             responses = {
+
                     @ApiResponse(
-                            responseCode = "200",
+                            responseCode = "201",
                             description = "User created successfully",
-                            content = @Content(schema = @Schema(implementation = User.class))
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = User.class)
+                            )
                     ),
+
                     @ApiResponse(
                             responseCode = "400",
-                            description = "Invalid input"
+                            description = "Validation failed or invalid input",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ValidationErrorResponse.class)
+                            )
+                    ),
+
+                    @ApiResponse(
+                            responseCode = "409",
+                            description = "User with same email already exists",
+                            content = @Content(
+                                    mediaType = "application/json",
+                                    schema = @Schema(implementation = ErrorResponse.class)
+                            )
                     )
             }
     )
     @PostMapping
     public ResponseEntity<User> createUser(@Valid @RequestBody CreateUserRequest request) {
+
         User user = new User();
         user.setUsername(request.getUsername());
         user.setEmail(request.getEmail());
+
         User created = userService.createUser(user);
+
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 }
