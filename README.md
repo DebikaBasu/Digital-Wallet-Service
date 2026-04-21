@@ -4,11 +4,7 @@ Spring Boot 4 application for managing digital wallets in a payments system. Sup
 
 ## Overview
 
-This repository provides a project skeleton for a RESTful microservice using Java 17, Gradle Kotlin DSL, Spring Data JPA, and PostgreSQL. The initial implementation covers user registration and wallet creation with full test coverage. Extend it to implement additional features per [INSTRUCTIONS.md](INSTRUCTIONS.md).
-
-Distributed as a ZIP archive including Git history for tracking development progress.
-
-Group: `com.rs.payments`. Version: `0.0.1-SNAPSHOT`. Description: `wallet-service`.
+This repository provides a contains a Spring Boot–based microservice for a RESTful microservice using Java 17, Gradle Kotlin DSL, Spring Data JPA, and PostgreSQL. The service currently supports user registration and wallet creation, and is being extended with additional features and wallet creation with full test coverage.
 
 ## Prerequisites
 
@@ -20,10 +16,8 @@ Group: `com.rs.payments`. Version: `0.0.1-SNAPSHOT`. Description: `wallet-servic
 
 ## Local Setup
 
-1. Extract the ZIP archive to a directory: `unzip wallet-service.zip` (or use GUI tool).
-2. Navigate to the project root: `cd wallet-service`.
-3. Inspect Git history: `git log --oneline` (demonstrates initial commits).
-4. Import into IDE: Open as Gradle project in IntelliJ (File > Open > select `build.gradle.kts`).
+1. Navigate to the project root: `cd wallet-service`.
+2. Import into IDE: Open as Gradle project in IntelliJ (File > Open > select `build.gradle.kts`).
 
 ## Running the Application
 
@@ -98,31 +92,7 @@ Hibernate DDL auto: `update` (dev only). Entities (using UUID for primary keys):
 - `wallets`: id (UUID), balance (one-to-one with user).
 - `transactions`: id (UUID), amount, type, timestamp.
 
-## Further Development
-
-Implement user stories in [INSTRUCTIONS.md](INSTRUCTIONS.md) using TDD. 
-Commit incrementally to the main branch with descriptive messages (e.g., "Add failing test for deposit endpoint").
-
 For CI: `.github/workflows/ci.yml` runs on push/PR (adapt as needed).
-
-## Submission
-
-To prepare the project for submission, run:
-
-```bash
-./gradlew prepareSubmission
-```
-
-This creates a ZIP file: `submission-<your-username>-<date>.zip`.
-
-**Important**: 
-- If the file name ends with `-anonymous`, the submission **will not be accepted**.
-- Ensure your git author name is set correctly:
-  ```bash
-  git config user.name "Your Name"
-  git config user.email "your.email@example.com"
-  ```
-- Commit your changes before running the task.
 
 ## Troubleshooting
 
@@ -131,6 +101,3 @@ This creates a ZIP file: `submission-<your-username>-<date>.zip`.
 - **Gradle issues**: `./gradlew clean` and retry; ensure Java 17 via `java -version`.
 - **Tests fail**: Ensure Docker for Testcontainers; use `create-drop` mode in tests.
 - **Lombok issues**: Enable annotation processing in IDE.
-
-
-For questions, refer to [INSTRUCTIONS.md](INSTRUCTIONS.md).
